@@ -16,7 +16,7 @@ public class BasicInfo {
      * T3 ?  ?  ?
      * T4 ?  ?  ?
      */
-    Transaction transactions[];
+    public Transaction transactions[];
 
 
     /**
