@@ -1,13 +1,13 @@
 package geneticAlgirithmCore;
 
 public class BasicInfo {
-    int U; // users
-    int N; // nodes
-    int A; // apps
-    int E; // transactions
-    int D; // fragments of Storage
+    public int U; // users
+    public int N; // nodes
+    public int A; // apps
+    public int E; // transactions
+    public int D; // fragments of Storage
 
-    double intensityOfRun[][];
+    public double intensityOfRun[][];
     /**
      * it is array of intensity start transaction by users;
      * U1 U2 U3
