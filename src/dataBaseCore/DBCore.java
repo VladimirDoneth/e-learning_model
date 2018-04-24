@@ -1,11 +1,7 @@
 package dataBaseCore;
 
 import java.io.IOException;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.*;
 
 import geneticAlgirithmCore.BasicInfo;
 import geneticAlgirithmCore.GenomeOfAgent;
@@ -43,7 +39,7 @@ public class DBCore {
         //create table "result_of_modeling"
         statement.execute("CREATE TABLE if not exists 'result_of_modeling' " +
                 "('id_of_result' INTEGER PRIMARY KEY AUTOINCREMENT, 'id_model' INTEGER, " +
-                "'array_g' BLOB, 'array_s' BLOB, 'array_h' BLOB);");
+                "'array_g' BLOB, 'array_s' BLOB, 'array_h' BLOB, 'comment_result' TEXT);");
 
 
         //create table "transaction"
@@ -122,8 +118,119 @@ public class DBCore {
         return basicInfo;
     }
 
-    public GenomeOfAgent getGenomeOfAgentByModelID(int modelID) {
-        
+    public GenomeOfAgent getGenomeOfAgentByModelID(int modelID, int resultModelingID)
+            throws SQLException, IOException, ClassNotFoundException {
+        GenomeOfAgent agent = new GenomeOfAgent();
+        ResultSet set = statement.executeQuery("SELECT * FROM model WHERE id_model ='"
+                + resultModelingID + "';");
+        if (set.next())
+        {
+            int basicInfoID = set.getInt("id_basic_information");
+            BasicInfo info = getBasicInfoByID(basicInfoID);
+            if (info == null) return null;
+            agent.setBasicInfo(info);
+        } else return null;
+        set.close();
+
+        set = statement.executeQuery("SELECT * FROM result_of_modeling WHERE id_of_result ='"
+                + resultModelingID + "';");
+        if (set.next()){
+          int tmp_arr[][] = BinaryObjectConverter.byteToArr2DI(set.getBytes("array_g"));
+          agent.setmG(tmp_arr);
+          tmp_arr = BinaryObjectConverter.byteToArr2DI(set.getBytes("array_s"));
+          agent.setmS(tmp_arr);
+          tmp_arr = BinaryObjectConverter.byteToArr2DI(set.getBytes("array_h"));
+          agent.setmH(tmp_arr);
+        } else return null;
+        set.close();
+        return agent;
+    }
+
+    public void saveToDBParamOfApp(ParamOfApp paramOfApp, int transactionID, int numOfParam) throws SQLException, IOException {
+        String sqlQuery = "INSERT INTO param_of_app (id_param_of_app, exchange_app, " +
+                "exchange_storage, id_transaction, num_of_param) VALUES (null, ?, ?, ?, ?);";
+        PreparedStatement preparedStatement = connection.prepareStatement(sqlQuery);
+        connection.setAutoCommit(false);
+        preparedStatement.setBytes(1, BinaryObjectConverter.arr1DIToByte(paramOfApp.exchangeBetweenApp));
+        preparedStatement.setBytes(2, BinaryObjectConverter.arr1DIToByte(paramOfApp.exchangeBetweenStorage));
+        preparedStatement.setInt(3, transactionID);
+        preparedStatement.setInt(4, numOfParam);
+        preparedStatement.execute();
+        connection.commit();
+        preparedStatement.close();
+        connection.setAutoCommit(true);
+    }
+
+    public void saveToDBTransaction(Transaction transaction, int basicInfoID)
+            throws SQLException, IOException {
+        String sqlQuery = "INSERT INTO transaction_b (id_transaction, id_basic_information, used_apps, used_dims, " +
+                "used_users, orders) VALUES (null, ?, ?, ?, ?, ?);";
+
+        PreparedStatement preparedStatement = connection.prepareStatement(sqlQuery);
+        connection.setAutoCommit(false);
+        preparedStatement.setInt(1, basicInfoID);
+        preparedStatement.setBytes(2, BinaryObjectConverter.arr1DIToByte(transaction.a));
+        preparedStatement.setBytes(3, BinaryObjectConverter.arr1DIToByte(transaction.d));
+        preparedStatement.setBytes(4, BinaryObjectConverter.arr1DIToByte(transaction.u));
+        preparedStatement.setBytes(5, BinaryObjectConverter.arr2DIToByte(transaction.w));
+        preparedStatement.execute();
+        connection.commit();
+        preparedStatement.close();
+        connection.setAutoCommit(true);
+
+        ResultSet set = statement.executeQuery("SELECT id_transaction FROM transaction_b " +
+                "WHERE id_transaction = last_insert_rowid();");
+        if (!set.next()) throw new SQLException("It is very strange");
+
+        int lastTrsID = set.getInt("id_transaction");
+        for (int i = 0; i < transaction.paramOfApps.length; i++) {
+            if (transaction.a[i] == 1) {
+                saveToDBParamOfApp(transaction.paramOfApps[i], lastTrsID, i);
+            }
+        }
+    }
+
+    public void saveToDBModel(BasicInfo info, String about, String dateOfCreating)
+            throws SQLException, IOException {
+        String sqlQuery = "INSERT INTO basic_information (id_basic_information, apps, users, nodes, transactions, " +
+                "dimentions, intensity_of_start) VALUES (null, ?, ?, ?, ?, ?, ?);";
+
+        PreparedStatement preparedStatement = connection.prepareStatement(sqlQuery);
+        connection.setAutoCommit(false);
+        preparedStatement.setInt(1, info.A);
+        preparedStatement.setInt(2, info.U);
+        preparedStatement.setInt(3, info.N);
+        preparedStatement.setInt(4, info.E);
+        preparedStatement.setInt(5, info.D);
+        preparedStatement.setBytes(6, BinaryObjectConverter.arr2DDToByte(info.intensityOfRun));
+
+        preparedStatement.execute();
+        connection.commit();
+        preparedStatement.close();
+        connection.setAutoCommit(true);
+
+        ResultSet set = statement.executeQuery("SELECT id_basic_information FROM " +
+                "basic_information WHERE id_basic_information = last_insert_rowid();");
+        if (!set.next()) throw new SQLException("if it not work, it no good");
+        int lastID = set.getInt("id_basic_information");
+        set.close();
+
+        for (int i = 0; i < info.E; i++) {
+            saveToDBTransaction(info.transactions[i], lastID);
+        }
+
+        sqlQuery = "INSERT INTO model (id_model, about, date_of_create, " +
+                "id_basic_information) VALUES (null, ?, ?, ?);";
+        preparedStatement = connection.prepareStatement(sqlQuery);
+        connection.setAutoCommit(false);
+        preparedStatement.setString(1, about);
+        preparedStatement.setString(2, dateOfCreating);
+        preparedStatement.setInt(3, lastID);
+
+        preparedStatement.execute();
+        connection.commit();
+        preparedStatement.close();
+        connection.setAutoCommit(true);
     }
 
     public static void main(String args[]) {
