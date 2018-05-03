@@ -3,15 +3,15 @@ package dataBaseCore;
 import java.io.IOException;
 import java.sql.*;
 
-import geneticAlgirithmCore.BasicInfo;
-import geneticAlgirithmCore.GenomeOfAgent;
-import geneticAlgirithmCore.ParamOfApp;
-import geneticAlgirithmCore.Transaction;
+import geneticAlgirithmCore.*;
 
 public class DBCore {
     private Connection connection;
     private Statement statement;
 
+    /**This is constructor for class DBCore
+     * filePath - it is full or part path to file of data base
+     * fileName - it is only name of file*/
     public DBCore(String filePath, String fileName) throws ClassNotFoundException, SQLException {
         String fileAddress;
         if (filePath == null) fileAddress = fileName;
@@ -55,11 +55,17 @@ public class DBCore {
                 "'exchange_app' BLOB, 'exchange_storage' BLOB);");
     }
 
+    /**This method need for closing session of work with database
+     * this method must be call, because if it don't after big time
+     * we can have errors working data base*/
     public void closeConnection() throws SQLException {
         statement.close();
         connection.close();
     }
 
+    /**
+     * this method get all param`s of this transaction
+     */
     public ParamOfApp [] getParamOfAppByTransactionID(int transactionId, int countOfApp)
             throws SQLException, IOException, ClassNotFoundException {
         ResultSet set = statement.executeQuery("SELECT * FROM param_of_app WHERE id_transaction = '"
@@ -78,32 +84,43 @@ public class DBCore {
         return params;
     }
 
+    /**
+     * Method get all transaction fulled all parameters related with this basic_information
+     */
     public Transaction [] getTransactionByBasicInfoID(int basicInfoID, int countOfTransaction, int countOfApp)
             throws SQLException, IOException, ClassNotFoundException {
         Transaction [] transactions = new Transaction[countOfTransaction];
+        int []idxs = new int [countOfTransaction];
+
         int inx = 0;
         ResultSet set = statement.executeQuery("SELECT * FROM transaction_b WHERE id_basic_information ='"
                 + basicInfoID + "';");
         while (set.next()) {
             Transaction trs = new Transaction();
             trs.a = BinaryObjectConverter.byteToArr1DI(set.getBytes("used_apps"));
-            trs.d = BinaryObjectConverter.byteToArr1DI(set.getBytes("used_dims"));
+            trs.d = BinaryObjectConverter.byteToArr1DI(set.getBytes("used_dim"));
             trs.u = BinaryObjectConverter.byteToArr1DI(set.getBytes("used_users"));
             trs.w = BinaryObjectConverter.byteToArr2DI(set.getBytes("orders"));
             int trsID = set.getInt("id_transaction");
-            trs.paramOfApps = getParamOfAppByTransactionID(trsID, countOfApp);
             transactions[inx] = trs;
+            idxs[inx] = trsID;
             inx++;
+        }
+
+        for (int i = 0; i < countOfTransaction; i++) {
+            transactions[i].paramOfApps = getParamOfAppByTransactionID(idxs[i], countOfApp);
         }
         set.close();
         return transactions;
     }
 
+    /**
+     * Method get selected basic_information with fulled transactions*/
     public BasicInfo getBasicInfoByID(int basicInfoID)
             throws SQLException, IOException, ClassNotFoundException {
         BasicInfo basicInfo = new BasicInfo();
         ResultSet set = statement.executeQuery("SELECT * FROM basic_information " +
-                "WHERE id_basic_informatin = '" +basicInfoID +"';");
+                "WHERE id_basic_information = '" +basicInfoID +"';");
         if (set.next()) {
             basicInfo.A = set.getInt("apps");
             basicInfo.U = set.getInt("users");
@@ -118,6 +135,8 @@ public class DBCore {
         return basicInfo;
     }
 
+    /**
+     * Method return done resolution*/
     public GenomeOfAgent getGenomeOfAgentByModelID(int modelID, int resultModelingID)
             throws SQLException, IOException, ClassNotFoundException {
         GenomeOfAgent agent = new GenomeOfAgent();
@@ -146,6 +165,8 @@ public class DBCore {
         return agent;
     }
 
+    /**
+     * Method save to database param of app related with transaction and place in transaction this param*/
     public void saveToDBParamOfApp(ParamOfApp paramOfApp, int transactionID, int numOfParam) throws SQLException, IOException {
         String sqlQuery = "INSERT INTO param_of_app (id_param_of_app, exchange_app, " +
                 "exchange_storage, id_transaction, num_of_param) VALUES (null, ?, ?, ?, ?);";
@@ -161,9 +182,11 @@ public class DBCore {
         connection.setAutoCommit(true);
     }
 
+    /**
+     * Method save to database transaction related with basic_info*/
     public void saveToDBTransaction(Transaction transaction, int basicInfoID)
             throws SQLException, IOException {
-        String sqlQuery = "INSERT INTO transaction_b (id_transaction, id_basic_information, used_apps, used_dims, " +
+        String sqlQuery = "INSERT INTO transaction_b (id_transaction, id_basic_information, used_apps, used_dim, " +
                 "used_users, orders) VALUES (null, ?, ?, ?, ?, ?);";
 
         PreparedStatement preparedStatement = connection.prepareStatement(sqlQuery);
@@ -190,6 +213,8 @@ public class DBCore {
         }
     }
 
+    /**
+     * Method save to data base model and related with it basic_information*/
     public void saveToDBModel(BasicInfo info, String about, String dateOfCreating)
             throws SQLException, IOException {
         String sqlQuery = "INSERT INTO basic_information (id_basic_information, apps, users, nodes, transactions, " +
@@ -211,7 +236,7 @@ public class DBCore {
 
         ResultSet set = statement.executeQuery("SELECT id_basic_information FROM " +
                 "basic_information WHERE id_basic_information = last_insert_rowid();");
-        if (!set.next()) throw new SQLException("if it not work, it no good");
+        if (!set.next()) throw new SQLException("if it isn't work, it no good");
         int lastID = set.getInt("id_basic_information");
         set.close();
 
@@ -233,13 +258,239 @@ public class DBCore {
         connection.setAutoCommit(true);
     }
 
+    // test unit
     public static void main(String args[]) {
         try {
             DBCore dbCore = new DBCore(null, "db.dat");
+            BasicInfo basicInfo = dbCore.getBasicInfoByID(1);
+            System.out.println("A " + basicInfo.A);
+            System.out.println("U " + basicInfo.U);
+            System.out.println("N " + basicInfo.N);
+            System.out.println("E " + basicInfo.E);
+            System.out.println("D " + basicInfo.D);
+
+            for (int i = 0; i < basicInfo.E; i++) {
+                for (int j = 0; j < basicInfo.U; j++) System.out.print(basicInfo.intensityOfRun[i][j] + " ");
+                System.out.println();
+            }
+
+            for (int i = 0; i < basicInfo.E; i++) {
+                System.out.println("trs: " + i);
+                if (basicInfo.transactions[i] == null) System.out.println("fuck " + i);
+                if (basicInfo.transactions[i] == null) System.out.println("fuck " + i);
+                /*System.out.println("a");
+                for (int j = 0; j < basicInfo.A; j++)
+                    System.out.print(basicInfo.transactions[i].a[j] + " ");
+                System.out.println();
+
+                System.out.println("d");
+                for (int j = 0; j < basicInfo.D; j++)
+                    System.out.print(basicInfo.transactions[i].d[j] + " ");
+                System.out.println();*/
+                /*
+                System.out.println("u");
+                for (int j = 0; j < basicInfo.U; j++)
+                    System.out.print(basicInfo.transactions[i].a[j] + " ");
+                */
+            }
+
+            Population population = new Population(basicInfo, 20,
+                    10000, 5, 5);
+            population.doEvolutionProcess(Population.BY_NUM_OF_GENERATION);
+            GenomeOfAgent goa = population.getAgents().get(0);
+
+            System.out.println("G:");
+            for (int i = 0; i < basicInfo.A; i++){
+                for (int j = 0; j < basicInfo.N; j++) System.out.print(goa.getmG()[i][j] + " ");
+                System.out.println();
+            }
+
+            System.out.println("S:");
+            for (int i = 0; i < basicInfo.D; i++){
+                for (int j = 0; j < basicInfo.N; j++) System.out.print(goa.getmS()[i][j] + " ");
+                System.out.println();
+            }
+
+            System.out.println("сумманрая интенсивность запуска транзакции j:");
+            double res1d[] = basicInfo.calcLoadOfTransaction();
+            for (double x: res1d) {
+                System.out.print(x + " ");
+            }
+            System.out.println("\n\nсуммарная интенсивность запуска приложения k:");
+            res1d = basicInfo.calcLoadOFApp();
+            for (double x: res1d) {
+                System.out.print(x + " ");
+            }
+            System.out.println("\n\nрассчитаем работу функционирования" +
+                    "\nтранзакции j на информационных узлах n и m");
+            int[][][] res3i = goa.workOfApp();
+            for (int e = 0; e < basicInfo.E; e++) {
+                for (int n = 0; n < basicInfo.N; n++) {
+                    for (int m = 0; m < basicInfo.N; m++) {
+                        System.out.print(res3i[e][n][m] + " ");
+                    }
+                    System.out.println();
+                }
+                System.out.println();
+            }
+            System.out.println("\nопределим объемы данных передаваемых из хранилища данных:");
+            res3i = goa.workOfStorage();
+            for (int e = 0; e < basicInfo.E; e++) {
+                for (int n = 0; n < basicInfo.N; n++) {
+                    for (int m = 0; m < basicInfo.N; m++) {
+                        System.out.print(res3i[e][n][m] + " ");
+                    }
+                    System.out.println();
+                }
+                System.out.println();
+            }
+
+            System.out.println("\nОбъемы данных в сети пределяются так:");
+            res3i = goa.dataInNetwork();
+            for (int e = 0; e < basicInfo.E; e++) {
+                for (int n = 0; n < basicInfo.N; n++) {
+                    for (int m = 0; m < basicInfo.N; m++) {
+                        System.out.print(res3i[e][n][m] + " ");
+                    }
+                    System.out.println();
+                }
+                System.out.println();
+            }
+
+            System.out.println("\nтеперь можно посторить матрицу интенсивносетй обмена между" +
+                    "\nинфо узлами сети при выполнении транзакции j");
+            double res3d[][][] = goa.loadOfNodesByTransactions();
+            for (int e = 0; e < basicInfo.E; e++) {
+                for (int n = 0; n < basicInfo.N; n++) {
+                    for (int m = 0; m < basicInfo.N; m++) {
+                        int ttt = (int) res3d[e][n][m];
+                        System.out.print(ttt + " ");
+                    }
+                    System.out.println();
+                }
+                System.out.println();
+            }
+
+            System.out.println("\nсоответственно, матрица нагрузки на" +
+                    "\nинформационные узлы определяется так");
+            double res2d[][] = goa.loadOfNetwork();
+            for (int e = 0; e < basicInfo.N; e++) {
+                for (int m = 0; m < basicInfo.N; m++) {
+                    int ttt = (int) res2d[e][m];
+                    System.out.print(ttt + " ");
+                }
+                System.out.println();
+            }
+
+            System.out.println("\nопределим среднюю нагрузку одного узла сети");
+            double resd = goa.averageLoad();
+            System.out.println(resd);
+
+            System.out.println("\nсумма отклонений нагрузки от средней");
+            resd = goa.fitness();
+            System.out.println(resd);
+
+            System.out.println("\n/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*/\n");
+            System.out.println("интенсивность потока запросов на запуск приложения i" +
+                    "\nустановленного на узле n");
+            res2d = goa.intensityOfStartApp();
+            for (int a = 0; a < basicInfo.A; a++) {
+                for (int n = 0; n < basicInfo.N; n++) {
+                    int ttt = (int) res2d[a][n];
+                    System.out.print(ttt + " ");
+                }
+                System.out.println();
+            }
+
+            System.out.println("\nзагрузка узлов с элементами хранилища даннхы: транзакия j" +
+                    "\nузел n, фрагмент d");
+            res3d = goa.loadNodesStorage();
+            for (int j = 0; j < basicInfo.E; j++) {
+                for (int d = 0; d < basicInfo.D; d++){
+                    for (int n = 0; n < basicInfo.N; n++) {
+                        int ttt = (int) res3d[j][d][n];
+                        System.out.print(ttt + " ");
+                    }
+                    System.out.println();
+                }
+                System.out.println();
+            }
+
+            System.out.println("интенсивность закпросов к хранилищу");
+            res2d = goa.intensityStorage();
+            for (int d = 0; d < basicInfo.D; d++) {
+                for (int n = 0; n < basicInfo.N; n++) {
+                    int ttt = (int) res2d[d][n];
+                    System.out.print(ttt + " ");
+                }
+                System.out.println();
+            }
+            /*BasicInfo basicInfo = new BasicInfo();
+            basicInfo.U = 6;
+            basicInfo.N = 15;
+            basicInfo.A = 7;
+            basicInfo.E = 3;
+            basicInfo.D = 3;
+
+            Transaction trs[] = new Transaction[3];
+            trs[0] = new Transaction();
+            trs[1] = new Transaction();
+            trs[2] = new Transaction();
+            basicInfo.transactions = trs;
+
+            trs[0].a = new int[]{1, 1, 0, 0, 0, 0, 0};
+            trs[0].d = new int[]{0, 1, 0};
+            //trs[0].u = new int[]{1, 0, 0, 0, 0, 0};
+
+            trs[1].a = new int[]{0, 0, 0, 1, 1, 0, 0};
+            trs[1].d = new int[]{0, 0, 1};
+            //trs[1].u = new int[]{0, 0, 0, 1, 0, 0};
+
+            trs[2].a = new int[]{0, 0, 1, 0, 0, 1, 1};
+            trs[2].d = new int[]{1, 0, 1};
+            //trs[2].u = new int[]{0, 1, 0, 0, 1, 0};
+
+            trs[0].paramOfApps = new ParamOfApp[7];
+            trs[1].paramOfApps = new ParamOfApp[7];
+            trs[2].paramOfApps = new ParamOfApp[7];
+
+            trs[0].paramOfApps[0] = new ParamOfApp();
+            trs[0].paramOfApps[0].exchangeBetweenStorage = new int[]{0, 100, 0};
+            trs[0].paramOfApps[0].exchangeBetweenApp = new int[]{0, 10, 0, 0, 0, 0, 0};
+            trs[0].paramOfApps[1] = new ParamOfApp();
+            trs[0].paramOfApps[1].exchangeBetweenStorage = new int[]{0, 50, 0};
+            trs[0].paramOfApps[1].exchangeBetweenApp = new int[]{5, 0, 0, 0, 0, 0, 0};
+
+            trs[1].paramOfApps[3] = new ParamOfApp();
+            trs[1].paramOfApps[3].exchangeBetweenStorage = new int[]{0, 0, 100};
+            trs[1].paramOfApps[3].exchangeBetweenApp = new int[]{0, 0, 0, 0, 1, 0, 0};
+            trs[1].paramOfApps[4] = new ParamOfApp();
+            trs[1].paramOfApps[4].exchangeBetweenStorage = new int[]{0, 0, 75};
+            trs[1].paramOfApps[4].exchangeBetweenApp = new int[]{0, 0, 0, 10, 0, 0, 0};
+
+            trs[2].paramOfApps[2] = new ParamOfApp();
+            trs[2].paramOfApps[2].exchangeBetweenStorage = new int[]{50, 0, 25};
+            trs[2].paramOfApps[2].exchangeBetweenApp = new int[]{0, 0, 0, 0, 0, 0, 100};
+            trs[2].paramOfApps[5] = new ParamOfApp();
+            trs[2].paramOfApps[5].exchangeBetweenStorage = new int[]{0, 0, 0};
+            trs[2].paramOfApps[5].exchangeBetweenApp = new int[]{0, 0, 50, 0, 0, 0, 0};
+            trs[2].paramOfApps[6] = new ParamOfApp();
+            trs[2].paramOfApps[6].exchangeBetweenStorage = new int[]{0, 0, 100};
+            trs[2].paramOfApps[6].exchangeBetweenApp = new int[]{0, 0, 30, 0, 0, 0, 0};
+
+            basicInfo.intensityOfRun = new double[][]{
+                    {10, 0, 0, 0, 0, 0},
+                    {0, 0, 0, 5, 0, 0},
+                    {0, 10, 0, 0, 10, 0}};
+
+            dbCore.saveToDBModel(basicInfo,"alalla", "03.05.2018");
+            */
             dbCore.closeConnection();
         } catch (ClassNotFoundException e) {
             e.printStackTrace();
         } catch (SQLException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
             e.printStackTrace();
         }
     }
