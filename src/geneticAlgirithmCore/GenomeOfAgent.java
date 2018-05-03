@@ -152,7 +152,7 @@ public class GenomeOfAgent {
     /**
      * Рассмотрим функционирование транзакции j информационных узлах n и m
      * опрелим объемы данных передаваемых между приложениями*/
-    int[][][] workOfApp(){
+    public int[][][] workOfApp(){
         int res[][][] = new int[basicInfo.E][basicInfo.N][basicInfo.N];
         for (int j = 0; j < basicInfo.E; j++) {
             for (int n = 0; n < basicInfo.N; n++) {
@@ -177,7 +177,7 @@ public class GenomeOfAgent {
     /**
      * Рассмотрим функционирование транзакции j информациооных узлах n и m
      * определим объемы данных передаваемых из хранилища данных*/
-    int[][][] workOfStorage(){  //или я такой тупой или чего эта штука не работает???
+    public int[][][] workOfStorage(){  //или я такой тупой или чего эта штука не работает???
         int res[][][] = new int[basicInfo.E][basicInfo.N][basicInfo.N];
         for (int j = 0; j < basicInfo.E; j++) {
             for (int n = 0; n < basicInfo.N; n++) {
@@ -202,7 +202,7 @@ public class GenomeOfAgent {
 
     /**
      * Объемы обмена данных в сети определяются так:*/
-    int [][][] dataInNetwork(){
+    public int [][][] dataInNetwork(){
         int res[][][] = new int[basicInfo.E][basicInfo.N][basicInfo.N];
         int inApp[][][] = workOfApp();
         int inStorage[][][] = workOfStorage();
@@ -219,7 +219,7 @@ public class GenomeOfAgent {
     /**
      * Постоим матрицу интенсивностей обмена между информационными узами сети
      * при выполении транзакции j*/
-    double [][][] loadOfNodesByTransactions() {
+    public double [][][] loadOfNodesByTransactions() {
         double res[][][] = new double[basicInfo.E][basicInfo.N][basicInfo.N];
         double wj[] = basicInfo.calcLoadOfTransaction();
         int dataInNetwork[][][] = dataInNetwork();
@@ -238,7 +238,7 @@ public class GenomeOfAgent {
     /**
      * Матрица нагрузки на информационные узлы,
      * так же это закгрузка каналов связи и сетевого оборудования*/
-    double [][] loadOfNetwork() {
+    public double [][] loadOfNetwork() {
         double res[][] = new double[basicInfo.N][basicInfo.N];
         double loadOfNodesByTransactions[][][] = loadOfNodesByTransactions();
 
@@ -253,7 +253,7 @@ public class GenomeOfAgent {
 
     /**
      * Определяем среднюю нагрузку одного узла сети*/
-    double averageLoad() {
+    public double averageLoad() {
         double averageLoad = 0;
         double loadOfNetwork[][] = loadOfNetwork();
 
@@ -286,7 +286,7 @@ public class GenomeOfAgent {
     /**
      * Рассчитываем загрузку узлов сети
      * Интенсивность потока запросов на запуск приложения i, установленого на узле n*/
-    double[][] intensityOfStartApp(){
+    public double[][] intensityOfStartApp(){
         double res[][] = new double[basicInfo.A][basicInfo.N];
         double q[] = basicInfo.calcLoadOFApp();
         for (int a = 0; a < basicInfo.A; a++) {
@@ -300,7 +300,7 @@ public class GenomeOfAgent {
     /**
      * Загрузка узлов с элементами хранилища данных танзакция j,
      * узел n, форгмент d*/
-    double[][][] loadNodesStorage() {
+    public double[][][] loadNodesStorage() {
         double res[][][] = new double[basicInfo.E][basicInfo.D][basicInfo.N];
         double intensityTransaction[] = basicInfo.calcLoadOfTransaction();
         for (int e = 0; e < basicInfo.E; e++) {
@@ -315,7 +315,7 @@ public class GenomeOfAgent {
 
 
     /**К фрагменту d на узле n интенсивность запросов равна:*/
-    double[][] intensityStorage() {
+    public double[][] intensityStorage() {
         double res[][] = new double[basicInfo.D][basicInfo.N];
         double loadNodesStorage[][][] = loadNodesStorage();
         for (int d = 0; d < basicInfo.D; d++) {
