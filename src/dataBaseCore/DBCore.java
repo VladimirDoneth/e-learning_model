@@ -263,36 +263,6 @@ public class DBCore {
         try {
             DBCore dbCore = new DBCore(null, "db.dat");
             BasicInfo basicInfo = dbCore.getBasicInfoByID(1);
-            System.out.println("A " + basicInfo.A);
-            System.out.println("U " + basicInfo.U);
-            System.out.println("N " + basicInfo.N);
-            System.out.println("E " + basicInfo.E);
-            System.out.println("D " + basicInfo.D);
-
-            for (int i = 0; i < basicInfo.E; i++) {
-                for (int j = 0; j < basicInfo.U; j++) System.out.print(basicInfo.intensityOfRun[i][j] + " ");
-                System.out.println();
-            }
-
-            for (int i = 0; i < basicInfo.E; i++) {
-                System.out.println("trs: " + i);
-                if (basicInfo.transactions[i] == null) System.out.println("fuck " + i);
-                if (basicInfo.transactions[i] == null) System.out.println("fuck " + i);
-                /*System.out.println("a");
-                for (int j = 0; j < basicInfo.A; j++)
-                    System.out.print(basicInfo.transactions[i].a[j] + " ");
-                System.out.println();
-
-                System.out.println("d");
-                for (int j = 0; j < basicInfo.D; j++)
-                    System.out.print(basicInfo.transactions[i].d[j] + " ");
-                System.out.println();*/
-                /*
-                System.out.println("u");
-                for (int j = 0; j < basicInfo.U; j++)
-                    System.out.print(basicInfo.transactions[i].a[j] + " ");
-                */
-            }
 
             Population population = new Population(basicInfo, 20,
                     10000, 5, 5);
