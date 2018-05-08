@@ -31,9 +31,6 @@ public class Population {
             for (int i = 0;  i < targetValue; i++) {
                 generateNewPopulation();
                 sortByFitness();
-               /* for (int j = 0; j < countOfAgents; j++)
-                System.out.println(agents.get(j).getFitnessVal());
-                System.out.println();*/
             }
         }
         if (method == BY_TARGET_VALUE) {
@@ -42,27 +39,30 @@ public class Population {
     }
 
     private void generateNewPopulation() {
-        ArrayList<GenomeOfAgent> newAgents = new ArrayList<>();
-        newAgents.add(agents.get(0));
-
         for (int i = 0; i < countForMutate; i++) {
             int inx = (int) (Math.random() * countOfAgents);
-            newAgents.add(agents.get(inx).mutate(MAX_COUNT_OF_MUTATE));
+            agents.add(agents.get(inx).mutate(MAX_COUNT_OF_MUTATE));
         }
 
         for (int i = 0; i < countForCrossing; i++) {
             int inx1 = (int) (Math.random() * countOfAgents);
             int inx2 = (int) (Math.random() * countOfAgents);
-            newAgents.add(agents.get(inx1).crossing(agents.get(inx2)));
+            agents.add(agents.get(inx1).crossing(agents.get(inx2)));
         }
+        /*
         int otherCount = countOfAgents - (countForCrossing + countForMutate + 1);
         while (otherCount > 0) {
             int inx = (int) (Math.random() * countOfAgents);
-            if (!newAgents.contains(agents.get(inx))){
-                newAgents.add(agents.get(inx));
+            if (!agents.contains(agents.get(inx))){
+                agents.add(agents.get(inx));
                 otherCount--;
             }
         }
+        */
+        sortByFitness();
+        ArrayList<GenomeOfAgent> newAgents = new ArrayList<>();
+        for (int i = 0; i < countOfAgents; i++)
+            newAgents.add(agents.get(i));
         agents = newAgents;
     }
 
