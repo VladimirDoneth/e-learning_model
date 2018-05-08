@@ -214,6 +214,84 @@ public class DBCore {
     }
 
     /**
+     * Method save to database result_of_modeling*/
+    public void saveToDBResult(int idModel, GenomeOfAgent agent, String comment) throws SQLException, IOException {
+        String sqlQuery = "INSERT INTO result_of_modeling (id_result, id_model, array_g, array_s, array_h, " +
+                "comment_result) VALUES (null, ?, ?, ?, ?, ?);";
+        PreparedStatement preparedStatement = connection.prepareStatement(sqlQuery);
+        connection.setAutoCommit(false);
+        preparedStatement.setInt(1, idModel);
+        preparedStatement.setBytes(2, BinaryObjectConverter.arr2DIToByte(agent.getmG()));
+        preparedStatement.setBytes(3, BinaryObjectConverter.arr2DIToByte(agent.getmS()));
+        preparedStatement.setBytes(4, BinaryObjectConverter.arr2DIToByte(agent.getmH()));
+        preparedStatement.setString(5, comment);
+        preparedStatement.execute();
+        connection.commit();
+        preparedStatement.close();
+        connection.setAutoCommit(true);
+    }
+
+    /**
+     * Method delete from database record of result of modeling
+     * by id of result*/
+    public void deleteResultOfModelingByID(int idResult) throws SQLException {
+        String sqlQuery = "DELETE FROM result_of_modeling WHERE " +
+                "id_result = '" + idResult + "';";
+        statement.execute(sqlQuery);
+    }
+
+    /**
+     * Method delete from database record of result of modeling
+     * by id of model*/
+    public void deleteResultOfModelingByModelID(int idModel) throws SQLException {
+        String sqlQuery = "DELETE FROM result_of_modeling WHERE " +
+                "id_model = '" + idModel + "';";
+        statement.execute(sqlQuery);
+    }
+
+
+    /**
+     * Method delete from database model and related with it data from database*/
+    public void deleteModelByID(int idModel) throws SQLException {
+        //get id_basic_info.. for next step of deleting
+        String sqlQuery = "SELECT id_basic_information, transactions FROM model WHERE id_model = '" + idModel + "';";
+        ResultSet resultSet = statement.executeQuery(sqlQuery);
+        int idBasicInfo = -1;
+        int countOfTrs = -1;
+        if (resultSet.next()) {
+            idBasicInfo = resultSet.getInt("id_basic_information");
+            countOfTrs = resultSet.getInt("transactions");
+        } else throw new SQLException("Record in table model with id = " + idModel + " is not exist");
+
+        //delete record in table model
+        sqlQuery = "DELETE FROM model WHERE id_model = '" + idModel + "';";
+        statement.execute(sqlQuery);
+
+        //delete record in table basic_information
+        sqlQuery = "DELETE FROM basic_information WHERE id_basic_infromation ='" + idBasicInfo + "';";
+        statement.execute(sqlQuery);
+
+        //get id_transaction for next_step of deleting
+        int trsIDs[] = new int[countOfTrs];
+        sqlQuery = "SELECT id_transaction FROM transaction_b WHERE id_basic_information = '" + idBasicInfo + "';";
+        int inx = 0;
+        resultSet = statement.executeQuery(sqlQuery);
+        while (resultSet.next()) {
+            trsIDs[inx] = resultSet.getInt("id_transaction");
+            inx++;
+        }
+
+        //delete records in table transaction_b by id_basic_info..
+        sqlQuery = "DELETE FROM transaction_b WHERE id_basic_information = '" + idBasicInfo + "';";
+        statement.execute(sqlQuery);
+
+        //delete records in table param_of_app by id_transaction
+        for (int i = 0; i < countOfTrs; i++) {
+            sqlQuery = "DELETE FROM param_of_app WHERE id_transaction = '" + trsIDs[i] +"';";
+            statement.execute(sqlQuery);
+        }
+    }
+    /**
      * Method save to data base model and related with it basic_information*/
     public void saveToDBModel(BasicInfo info, String about, String dateOfCreating)
             throws SQLException, IOException {
