@@ -26,11 +26,11 @@
                   <BoxBlur />
                </effect>
             </Circle>
-            <Button fx:id="rollupButton" focusTraversable="false" layoutX="686.0" layoutY="14.0" mnemonicParsing="false" onAction="#doRollupButton" text="__">
+            <Button fx:id="rollupButton" focusTraversable="false" layoutX="658.0" layoutY="14.0" mnemonicParsing="false" onAction="#doRollupButton" text="__">
                <cursor>
                   <Cursor fx:constant="DEFAULT" />
                </cursor></Button>
-            <Button fx:id="exitButton" focusTraversable="false" layoutX="722.0" layoutY="14.0" mnemonicParsing="false" onAction="#doExitButton" text="Х" textFill="#f2084e">
+            <Button fx:id="exitButton" focusTraversable="false" layoutX="699.0" layoutY="14.0" mnemonicParsing="false" onAction="#doExitButton" text="Х" textFill="#f2084e">
                <cursor>
                   <Cursor fx:constant="DEFAULT" />
                </cursor></Button>
@@ -63,7 +63,7 @@
                   <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
                </columnResizePolicy>
             </TableView>
-            <Button fx:id="moreButton" focusTraversable="false" layoutX="297.0" layoutY="272.0" mnemonicParsing="false" onAction="#doMoreButton" text="Ещё..." />
+            <Button fx:id="moreButton" focusTraversable="false" layoutX="288.0" layoutY="272.0" mnemonicParsing="false" onAction="#doMoreButton" text="Ещё..." />
             <ImageView fitHeight="101.0" fitWidth="103.0" layoutX="94.0" layoutY="334.0" pickOnBounds="true" preserveRatio="true" />
          </children>
       </Pane>
