@@ -1,5 +1,7 @@
 package guiByFX.view;
 
+import geneticAlgirithmCore.ParamOfApp;
+import geneticAlgirithmCore.Transaction;
 import guiByFX.model.DataModel;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXMLLoader;
@@ -9,8 +11,8 @@ import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.GridPane;
-import javafx.scene.shape.Polygon;
 import javafx.stage.Stage;
+import javafx.stage.StageStyle;
 
 import java.io.IOException;
 import java.util.Optional;
@@ -23,6 +25,9 @@ public class CreateModelController {
     private static CheckBox [] usedDim;
     private static CheckBox [] usedUsers;
     private static CheckBox [][] usingOrder;
+    private static int numOfTransaction;
+    private boolean [] isFilledTrs;
+    public static ParamOfApp[] paramOfApps;
 
     /**
      * this is fields by create_model_step1.fxml
@@ -130,12 +135,13 @@ public class CreateModelController {
 
     public void doNextThree(ActionEvent actionEvent) throws IOException {
         boolean isOK = true;
-        double intensity[][] = new double[CreateModelController.dataModel.getBasicInfo().E][CreateModelController.dataModel.getBasicInfo().U];
+        double intensity[][] = new double[dataModel.getBasicInfo().E][dataModel.getBasicInfo().U];
 
+        System.out.println(dataModel.getBasicInfo().E + " " + dataModel.getBasicInfo().U);
         try {
-            for (int i = 0; i < CreateModelController.dataModel.getBasicInfo().E; i++) {
-                for (int j = 0; j < CreateModelController.dataModel.getBasicInfo().U; j++) {
-                    intensity[i][j] = Double.parseDouble(intensityText[j][i].getText());
+            for (int i = 0; i < dataModel.getBasicInfo().E; i++) {
+                for (int j = 0; j < dataModel.getBasicInfo().U; j++) {
+                    intensity[i][j] = Double.parseDouble(intensityText[i][j].getText());
                     if (intensity[i][j] < 0) isOK = false;
                 }
             }
@@ -178,7 +184,7 @@ public class CreateModelController {
                 gridPane.add(label, 0, i);
             }
 
-            intensityText = new TextField[CreateModelController.dataModel.getBasicInfo().E][CreateModelController.dataModel.getBasicInfo().U];
+            intensityText = new TextField[dataModel.getBasicInfo().E][dataModel.getBasicInfo().U];
             for (int i = 0; i < intensityText.length; i++) {
                 for (int j = 0; j < intensityText[0].length; j++) {
                     TextField textField = new TextField();
@@ -198,9 +204,12 @@ public class CreateModelController {
     }
 
     public void doActivateFieldsByTrs(MouseEvent mouseEvent) {
-        System.out.println("it is work");
         if (isNotMade) {
             isNotMade = false;
+            isFilledTrs = new boolean[dataModel.getBasicInfo().E];
+            numOfTransaction = 0;
+            myIndexation.setText((numOfTransaction + 1) + " / " + dataModel.getBasicInfo().E);
+            dataModel.getBasicInfo().transactions = new Transaction[dataModel.getBasicInfo().E];
 
             //fill usedAppScrollPane;
             usedApp = new CheckBox[CreateModelController.dataModel.getBasicInfo().A];
@@ -246,7 +255,7 @@ public class CreateModelController {
                 label.setPrefSize(35, 12);
                 label.setText((i + 1) +"");
                 gridPaneUsers.add(label, i, 0);
-                gridPaneUsers.add(usedDim[i], i, 1);
+                gridPaneUsers.add(usedUsers[i], i, 1);
             }
 
             usedUsersScrollPane.setContent(gridPaneUsers);
@@ -281,14 +290,152 @@ public class CreateModelController {
     }
 
     public void doNextTrs(MouseEvent mouseEvent) {
+        doNextPerious(true);
     }
 
     public void doPerviousTrs(MouseEvent mouseEvent) {
+        doNextPerious(false);
     }
 
-    public void doFillParamApp(MouseEvent mouseEvent) {
+    public void doFillParamApp(MouseEvent mouseEvent) throws IOException {
+        int usedAppInt[] = new int[dataModel.getBasicInfo().A];
+        int sumTest = 0;
+        for (int i = 0; i < dataModel.getBasicInfo().A; i++) {
+            if (usedApp[i].isSelected()) usedAppInt[i] = 1;
+            else usedAppInt[i] = 0;
+            sumTest += usedAppInt[i];
+        }
+        if (sumTest == 0) {
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("ОШИБКА ДАННЫХ");
+            alert.setHeaderText("Транзакция не может работать без приложений!");
+            alert.setContentText("Выберете хотябы одно приложение для\nработы транзакции!");
+            alert.showAndWait();
+            return;
+        }
+
+        int usedDimInt[] = new int[dataModel.getBasicInfo().D];
+        for (int i = 0; i < dataModel.getBasicInfo().D; i++) {
+            if (usedDim[i].isSelected()) usedDimInt[i] = 1;
+            else usedDimInt[i] = 0;
+        }
+
+        CreateModelController5.usedAppInt = usedAppInt;
+        CreateModelController5.usedDimInt = usedDimInt;
+
+        //тут дописываем код по вызову след окна
+        Stage childStage = new Stage();
+        childStage.setAlwaysOnTop(true);
+        childStage.initStyle(StageStyle.UNDECORATED);
+
+        Parent root = FXMLLoader.load(getClass().getResource("create_model_step5.fxml"));
+        childStage.setScene(new Scene(root));
+        childStage.initOwner((Stage) ((Node) mouseEvent.getSource()).getScene().getWindow());
+        childStage.showAndWait();
     }
 
     public void doSave(ActionEvent actionEvent) {
+
+    }
+
+    private void doNextPerious(boolean isNext) {
+        int usedAppInt[] = new int[dataModel.getBasicInfo().A];
+        int sumTest = 0;
+        for (int i = 0; i < dataModel.getBasicInfo().A; i++) {
+            if (usedApp[i].isSelected()) usedAppInt[i] = 1;
+            else usedAppInt[i] = 0;
+            sumTest += usedAppInt[i];
+        }
+        if (sumTest == 0) {
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("ОШИБКА ДАННЫХ");
+            alert.setHeaderText("Транзакция не может работать без приложений!");
+            alert.setContentText("Выберете хотябы одно приложение для\nработы транзакции!");
+            alert.showAndWait();
+            return;
+        }
+
+        if (paramOfApps == null) {
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("НЕ ВСЕ ДАННЫЕ ЗАПОЛНЕНЫ");
+            alert.setHeaderText("Приложения транзакции должны обладать параметрами!");
+            alert.setContentText("Заполните параметры транзакций!");
+            alert.showAndWait();
+            return;
+        }
+
+        int usedDimInt[] = new int[dataModel.getBasicInfo().D];
+        for (int i = 0; i < dataModel.getBasicInfo().D; i++) {
+            if (usedDim[i].isSelected()) usedDimInt[i] = 1;
+            else usedDimInt[i] = 0;
+        }
+
+        int usedUsersInt[] = new int[dataModel.getBasicInfo().U];
+        for (int i = 0; i < dataModel.getBasicInfo().U; i++) {
+            if (usedUsers[i].isSelected()) usedUsersInt[i] = 1;
+            else usedUsersInt[i] = 0;
+        }
+
+        int orders[][] = new int[dataModel.getBasicInfo().A][dataModel.getBasicInfo().A];
+        for (int i = 0; i < dataModel.getBasicInfo().A; i++) {
+            for (int j = 0; j < dataModel.getBasicInfo().A; j++) {
+                if (usingOrder[i][j].isSelected()) orders[i][j] = 1;
+                else orders[i][j] = 0;
+            }
+        }
+
+        dataModel.getBasicInfo().transactions[numOfTransaction].a = usedAppInt;
+        dataModel.getBasicInfo().transactions[numOfTransaction].d = usedDimInt;
+        dataModel.getBasicInfo().transactions[numOfTransaction].u = usedUsersInt;
+        dataModel.getBasicInfo().transactions[numOfTransaction].w = orders;
+        dataModel.getBasicInfo().transactions[numOfTransaction].paramOfApps = paramOfApps;
+
+        isFilledTrs[numOfTransaction] = true;
+
+        if (isNext) numOfTransaction = (numOfTransaction + 1) % dataModel.getBasicInfo().E;
+        else {
+            if (numOfTransaction == 0) numOfTransaction = dataModel.getBasicInfo().E - 1;
+            else numOfTransaction--;
+        }
+
+        paramOfApps = null;
+        if (isFilledTrs[numOfTransaction]) {
+            usedAppInt = dataModel.getBasicInfo().transactions[numOfTransaction].a;
+            usedDimInt = dataModel.getBasicInfo().transactions[numOfTransaction].d;
+            usedUsersInt = dataModel.getBasicInfo().transactions[numOfTransaction].u;
+            orders = dataModel.getBasicInfo().transactions[numOfTransaction].w;
+
+            for (int i = 0; i < dataModel.getBasicInfo().A; i++)
+                usedApp[i].setSelected(usedAppInt[i] == 1);
+
+            for (int i = 0; i < dataModel.getBasicInfo().D; i++)
+                usedDim[i].setSelected(usedUsersInt[i] == 1);
+
+            for (int i = 0; i < dataModel.getBasicInfo().U; i++)
+                usedUsers[i].setSelected(usedUsersInt[i] == 1);
+
+            for (int i = 0; i < dataModel.getBasicInfo().A; i++) {
+                for (int j = 0; j < dataModel.getBasicInfo().A; j++)
+                    usingOrder[i][j].setSelected(orders[i][j] == 1);
+            }
+
+            myIndexation.setText((numOfTransaction + 1) + " / " + dataModel.getBasicInfo().E);
+        } else {
+            for (int i = 0; i < dataModel.getBasicInfo().A; i++)
+                usedApp[i].setSelected(false);
+
+            for (int i = 0; i < dataModel.getBasicInfo().D; i++)
+                usedDim[i].setSelected(false);
+
+            for (int i = 0; i < dataModel.getBasicInfo().U; i++)
+                usedUsers[i].setSelected(false);
+
+            for (int i = 0; i < dataModel.getBasicInfo().A; i++) {
+                for (int j = 0; j < dataModel.getBasicInfo().A; j++)
+                    usingOrder[i][j].setSelected(false);
+            }
+
+            myIndexation.setText((numOfTransaction + 1) + " / " + dataModel.getBasicInfo().E);
+        }
     }
 }
