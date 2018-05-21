@@ -8,16 +8,14 @@ import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 
 public class Main extends Application {
-    public static Stage primaryStage;
 
     @Override
     public void start(Stage primaryStage) throws Exception{
         Parent root = FXMLLoader.load(getClass().getResource("view/main_screen.fxml"));
-        primaryStage.initStyle(StageStyle.UNDECORATED);
-        primaryStage.setTitle("Hello World");
+        //primaryStage.initStyle(StageStyle.UNDECORATED);
+        primaryStage.setTitle("E-learning model");
         primaryStage.setScene(new Scene(root, 760, 480));
         primaryStage.show();
-        Main.primaryStage = primaryStage;
     }
 
 
