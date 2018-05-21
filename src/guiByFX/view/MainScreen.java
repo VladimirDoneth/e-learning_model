@@ -2,7 +2,15 @@ package guiByFX.view;
 
 import guiByFX.Main;
 import javafx.event.ActionEvent;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Node;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.input.MouseEvent;
+import javafx.stage.Stage;
+import javafx.stage.StageStyle;
+
+import java.io.IOException;
 
 public class MainScreen {
 
@@ -14,8 +22,18 @@ public class MainScreen {
         System.exit(0);
     }
 
-    public void doCreateModel(MouseEvent mouseEvent) {
-        System.out.println("createModel");
+    /**
+     * method is handler for button of create new model, if it clicked main_screen hide
+     * and start screen create_model_step1
+     * @param mouseEvent
+     * @throws IOException
+     */
+    public void doCreateModel(MouseEvent mouseEvent) throws IOException {
+        Stage mainStage = (Stage) ((Node)mouseEvent.getSource()).getScene().getWindow();
+        mainStage.hide();
+        Parent root = FXMLLoader.load(getClass().getResource("create_model_step1.fxml"));
+        mainStage.setScene(new Scene(root, 640, 300));
+        mainStage.show();
     }
 
     public void doStartModeling(MouseEvent mouseEvent) {
@@ -23,7 +41,8 @@ public class MainScreen {
     }
 
     public void doRollupButton(ActionEvent actionEvent) {
-        Main.primaryStage.setIconified(true);
+        Stage appStage = (Stage)((Node)actionEvent.getSource()).getScene().getWindow();
+        appStage.setIconified(true);
     }
 
 
