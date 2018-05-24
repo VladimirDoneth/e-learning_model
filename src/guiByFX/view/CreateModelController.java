@@ -169,6 +169,7 @@ public class CreateModelController {
     public void doActivateFields(MouseEvent mouseEvent) {
         if (isNotMade) {
             isNotMade = false;
+            dataModel.getBasicInfo().transactions = new Transaction[dataModel.getBasicInfo().E];
             GridPane gridPane = new GridPane();
             gridPane.setPrefSize(55 * (CreateModelController.dataModel.getBasicInfo().E + 1),
                     12 * (CreateModelController.dataModel.getBasicInfo().U + 1));
@@ -322,20 +323,18 @@ public class CreateModelController {
 
         CreateModelController5.usedAppInt = usedAppInt;
         CreateModelController5.usedDimInt = usedDimInt;
+        CreateModelController5.paramOfApps = paramOfApps;
+        CreateModelController5.isFiled = isFilledTrs[numOfTransaction];
 
         //тут дописываем код по вызову след окна
         Stage childStage = new Stage();
         childStage.setAlwaysOnTop(true);
-        childStage.initStyle(StageStyle.UNDECORATED);
+        childStage.initStyle(StageStyle.UTILITY);
 
         Parent root = FXMLLoader.load(getClass().getResource("create_model_step5.fxml"));
-        childStage.setScene(new Scene(root));
+        childStage.setScene(new Scene(root, 640, 300));
         childStage.initOwner((Stage) ((Node) mouseEvent.getSource()).getScene().getWindow());
         childStage.showAndWait();
-    }
-
-    public void doSave(ActionEvent actionEvent) {
-
     }
 
     private void doNextPerious(boolean isNext) {
@@ -384,11 +383,19 @@ public class CreateModelController {
             }
         }
 
-        dataModel.getBasicInfo().transactions[numOfTransaction].a = usedAppInt;
-        dataModel.getBasicInfo().transactions[numOfTransaction].d = usedDimInt;
-        dataModel.getBasicInfo().transactions[numOfTransaction].u = usedUsersInt;
-        dataModel.getBasicInfo().transactions[numOfTransaction].w = orders;
-        dataModel.getBasicInfo().transactions[numOfTransaction].paramOfApps = paramOfApps;
+        if (isFilledTrs[numOfTransaction] && dataModel.getBasicInfo().transactions[numOfTransaction].a.equals(usedAppInt) &&
+                    dataModel.getBasicInfo().transactions[numOfTransaction].d.equals(usedDimInt) &&
+                    dataModel.getBasicInfo().transactions[numOfTransaction].u.equals(usedUsersInt) &&
+                    dataModel.getBasicInfo().transactions[numOfTransaction].w.equals(usedAppInt)) {
+            //позже прилепить проверку правильности ввода параметров приложений
+        }  else {
+            dataModel.getBasicInfo().transactions[numOfTransaction] = new Transaction();
+            dataModel.getBasicInfo().transactions[numOfTransaction].a = usedAppInt;
+            dataModel.getBasicInfo().transactions[numOfTransaction].d = usedDimInt;
+            dataModel.getBasicInfo().transactions[numOfTransaction].u = usedUsersInt;
+            dataModel.getBasicInfo().transactions[numOfTransaction].w = orders;
+            dataModel.getBasicInfo().transactions[numOfTransaction].paramOfApps = paramOfApps;
+        }
 
         isFilledTrs[numOfTransaction] = true;
 
@@ -398,7 +405,6 @@ public class CreateModelController {
             else numOfTransaction--;
         }
 
-        paramOfApps = null;
         if (isFilledTrs[numOfTransaction]) {
             usedAppInt = dataModel.getBasicInfo().transactions[numOfTransaction].a;
             usedDimInt = dataModel.getBasicInfo().transactions[numOfTransaction].d;
@@ -420,6 +426,8 @@ public class CreateModelController {
             }
 
             myIndexation.setText((numOfTransaction + 1) + " / " + dataModel.getBasicInfo().E);
+
+            paramOfApps = dataModel.getBasicInfo().transactions[numOfTransaction].paramOfApps;
         } else {
             for (int i = 0; i < dataModel.getBasicInfo().A; i++)
                 usedApp[i].setSelected(false);
@@ -436,6 +444,12 @@ public class CreateModelController {
             }
 
             myIndexation.setText((numOfTransaction + 1) + " / " + dataModel.getBasicInfo().E);
+
+            paramOfApps = null;
         }
+    }
+
+    public void doSave(ActionEvent actionEvent) {
+
     }
 }
