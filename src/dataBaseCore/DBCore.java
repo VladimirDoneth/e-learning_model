@@ -2,10 +2,12 @@ package dataBaseCore;
 
 import java.io.IOException;
 import java.sql.*;
+import java.util.ArrayList;
 
 import geneticAlgirithmCore.*;
 
 public class DBCore {
+    public static final String DB_NAME = "db.dat";
     private Connection connection;
     private Statement statement;
 
@@ -334,6 +336,34 @@ public class DBCore {
         connection.commit();
         preparedStatement.close();
         connection.setAutoCommit(true);
+    }
+
+    public ArrayList<SimpleModel> getSimpleModels() throws SQLException {
+        ArrayList<SimpleModel> models = new ArrayList<>();
+        String sqlQuery = "SELECT * FROM 'model';";
+        ResultSet set = statement.executeQuery(sqlQuery);
+        while (set.next()) {
+            SimpleModel simpleModel = new SimpleModel();
+            simpleModel.idModel = set.getInt("id_model");
+            simpleModel.idBasicInfo = set.getInt("id_basic_information");
+            simpleModel.about = set.getString("about");
+            simpleModel.dateOfCreate = set.getString("date_of_create");
+
+            models.add(simpleModel);
+        }
+
+        return models;
+    }
+
+    public class SimpleModel {
+        public String dateOfCreate;
+        public String about;
+        public int idModel;
+        public int idBasicInfo;
+
+        public String gerateStringForComboBox(){
+            return  dateOfCreate + " | " + about;
+        }
     }
 
     // test unit
