@@ -1,7 +1,7 @@
 package guiByFX.view;
 
-import geneticAlgirithmCore.ParamOfApp;
-import geneticAlgirithmCore.Transaction;
+import dataBaseCore.DBCore;
+import geneticAlgirithmCore.*;
 import guiByFX.model.DataModel;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXMLLoader;
@@ -15,6 +15,7 @@ import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 
 import java.io.IOException;
+import java.sql.SQLException;
 import java.util.Optional;
 
 public class CreateModelController {
@@ -151,6 +152,8 @@ public class CreateModelController {
         }
 
         if (isOK) {
+            dataModel.getBasicInfo().intensityOfRun = intensity;
+
             isNotMade = true;
             Stage mainStage = (Stage) ((Node) actionEvent.getSource()).getScene().getWindow();
             mainStage.hide();
@@ -328,7 +331,7 @@ public class CreateModelController {
 
         //тут дописываем код по вызову след окна
         Stage childStage = new Stage();
-        childStage.setAlwaysOnTop(true);
+        childStage.setAlwaysOnTop(false);
         childStage.initStyle(StageStyle.UTILITY);
 
         Parent root = FXMLLoader.load(getClass().getResource("create_model_step5.fxml"));
@@ -415,7 +418,7 @@ public class CreateModelController {
                 usedApp[i].setSelected(usedAppInt[i] == 1);
 
             for (int i = 0; i < dataModel.getBasicInfo().D; i++)
-                usedDim[i].setSelected(usedUsersInt[i] == 1);
+                usedDim[i].setSelected(usedDimInt[i] == 1);
 
             for (int i = 0; i < dataModel.getBasicInfo().U; i++)
                 usedUsers[i].setSelected(usedUsersInt[i] == 1);
@@ -450,6 +453,34 @@ public class CreateModelController {
     }
 
     public void doSave(ActionEvent actionEvent) {
+        boolean isDataModelOK = true;
+        for (int i = 0; i < dataModel.getBasicInfo().E; i++) {
+            if (!isFilledTrs[i]) {
+                isDataModelOK = false;
+                break;
+            }
+        }
+        if (isDataModelOK) {
+            try {
+                DBCore dbCore = new DBCore(null, DBCore.DB_NAME);
+                dbCore.saveToDBModel(dataModel.getBasicInfo(), dataModel.getAboutModel(), dataModel.getDateCreate());
+                dbCore.closeConnection();
 
+                Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                alert.setTitle("Сохранено");
+                alert.setHeaderText("Модель успешно сохранена!");
+                alert.setContentText("Для выполнения моделирования выберете\nнеобходимый пункт в гланом меню.");
+
+                alert.showAndWait();
+            } catch (Exception excp) {
+                excp.printStackTrace();
+                Alert alert = new Alert(Alert.AlertType.ERROR);
+                alert.setTitle("ОШИБКА");
+                alert.setHeaderText("Ошибка сохранения в базу данных!");
+                alert.setContentText("Пропишите леща своему сисадмину\nили разрабу этой проги!");
+
+                alert.showAndWait();
+            }
+        }
     }
 }
