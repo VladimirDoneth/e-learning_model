@@ -137,13 +137,24 @@ public class DBCore {
         return basicInfo;
     }
 
+
+    public ArrayList<Integer> getIdRelultsByModel(int idModel) throws SQLException {
+        ArrayList<Integer> ids = new ArrayList<>();
+        String sqlQuery = "SELECT id_of_result FROM result_of_modeling WHERE id_model = '" + idModel + "';";
+        ResultSet set = statement.executeQuery(sqlQuery);
+        while (set.next()) {
+            ids.add(set.getInt("id_of_result"));
+        }
+        return ids;
+    }
+
     /**
      * Method return done resolution*/
     public GenomeOfAgent getGenomeOfAgentByModelID(int modelID, int resultModelingID)
             throws SQLException, IOException, ClassNotFoundException {
         GenomeOfAgent agent = new GenomeOfAgent();
         ResultSet set = statement.executeQuery("SELECT * FROM model WHERE id_model ='"
-                + resultModelingID + "';");
+                + modelID + "';");
         if (set.next())
         {
             int basicInfoID = set.getInt("id_basic_information");
