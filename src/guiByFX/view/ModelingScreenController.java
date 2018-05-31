@@ -86,7 +86,7 @@ public class ModelingScreenController {
         }
 
         DBCore dbCore = new DBCore(null, DBCore.DB_NAME);
-        BasicInfo basicInfo = dbCore.getBasicInfoByID(inx);
+        BasicInfo basicInfo = dbCore.getBasicInfoByID(modelsArr.get(inx).idBasicInfo);
         dbCore.closeConnection();
 
         if (basicInfo == null) {
@@ -95,12 +95,20 @@ public class ModelingScreenController {
         }
 
         Population population = new Population(basicInfo, countAgents, countIterFitness, countCross, countMutation);
-        resultModel = new ResultModel();
         if (isByCount) population.doEvolutionProcess(Population.BY_NUM_OF_GENERATION);
         if (isToValue) population.doEvolutionProcess(Population.BY_TARGET_VALUE);
+
+        resultModel = new ResultModel();
         resultModel.setAgent(population.getAgents().get(0));
+        resultModel.setIdModel(modelsArr.get(inx).idModel);
 
+        ResultsModelingController.resultModel = resultModel;
 
+        Stage thisStage = (Stage) ((Node) actionEvent.getSource()).getScene().getWindow();
+        thisStage.hide();
+        Parent root = FXMLLoader.load(getClass().getResource("view_of_results_modeling.fxml"));
+        thisStage.setScene(new Scene(root, 640, 450));
+        thisStage.show();
     }
 
     public void doCancelModeling(ActionEvent actionEvent) {

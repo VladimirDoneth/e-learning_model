@@ -235,6 +235,10 @@ public class GenomeOfAgent {
         return res;
     }
 
+    public BasicInfo getBasicInfo() {
+        return basicInfo;
+    }
+
     /**
      * Матрица нагрузки на информационные узлы,
      * так же это закгрузка каналов связи и сетевого оборудования*/

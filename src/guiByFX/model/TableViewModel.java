@@ -3,8 +3,8 @@ package guiByFX.model;
 import geneticAlgirithmCore.GenomeOfAgent;
 
 public class TableViewModel {
-    private String name;
-    private String result;
+    public String name;
+    public String result;
 
     public TableViewModel (GenomeOfAgent genomeOfAgent, String nameColum) {
         this.result = genomeOfAgent.getFitnessVal() + "";

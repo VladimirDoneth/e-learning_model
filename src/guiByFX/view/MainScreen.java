@@ -54,9 +54,10 @@ public class MainScreen {
 
         for (int i = 0; i < simpleModels.size(); i++) {
             ArrayList<Integer> ids = dbCore.getIdRelultsByModel(simpleModels.get(i).idModel);
-            for (int j = 0; j < ids.size(); i++) {
+            for (int j = 0; j < ids.size(); j++) {
                 GenomeOfAgent genomeOfAgent = dbCore.getGenomeOfAgentByModelID(simpleModels.get(i).idModel, ids.get(j));
                 TableViewModel tableViewModel = new TableViewModel(genomeOfAgent, simpleModels.get(i).gerateStringForComboBox());
+                //modelsOfResult.add(tableViewModel); //в общем дичь с этими таблицами, не работает
             }
         }
 

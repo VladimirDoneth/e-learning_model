@@ -229,7 +229,7 @@ public class DBCore {
     /**
      * Method save to database result_of_modeling*/
     public void saveToDBResult(int idModel, GenomeOfAgent agent, String comment) throws SQLException, IOException {
-        String sqlQuery = "INSERT INTO result_of_modeling (id_result, id_model, array_g, array_s, array_h, " +
+        String sqlQuery = "INSERT INTO result_of_modeling (id_of_result, id_model, array_g, array_s, array_h, " +
                 "comment_result) VALUES (null, ?, ?, ?, ?, ?);";
         PreparedStatement preparedStatement = connection.prepareStatement(sqlQuery);
         connection.setAutoCommit(false);
